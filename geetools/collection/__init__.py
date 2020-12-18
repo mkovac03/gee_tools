@@ -508,7 +508,7 @@ class Collection(object):
 
         return tools.image.renameDict(image, original_names)
 
-    def proxyImage(self, renamed=False):
+    def proxyImage(self, renamed=False, masked=True):
         """ Create an Image with the band names, type and scale but empty """
         precisions = self.precisions(renamed=renamed)
         first_band = self.bands[0]
@@ -518,6 +518,8 @@ class Collection(object):
             name = first_band.name
 
         init = ee.Image.constant(0).rename(name)
+        if masked:
+            init = init.selfMask()
         init = convertPrecision(init, precisions[name])
         for i, band in enumerate(self.bands):
             if i == 0: continue
@@ -525,8 +527,9 @@ class Collection(object):
                 name = band.id
             else:
                 name = band.name
-
             img = ee.Image.constant(0).rename(name)
+            if masked:
+                img = img.selfMask()
             img = convertPrecision(img, precisions[name])
             init = init.addBands(img)
 
